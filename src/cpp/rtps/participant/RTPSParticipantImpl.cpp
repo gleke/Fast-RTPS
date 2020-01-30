@@ -820,10 +820,9 @@ void RTPSParticipantImpl::createReceiverResources(LocatorList_t& Locator_list, b
 {
     std::vector<std::shared_ptr<ReceiverResource>> newItemsBuffer;
 
-    uint32_t size = m_network_Factory.get_max_message_size_between_transports();
     for (auto it_loc = Locator_list.begin(); it_loc != Locator_list.end(); ++it_loc)
     {
-        bool ret = m_network_Factory.BuildReceiverResources(*it_loc, size, newItemsBuffer);
+        bool ret = m_network_Factory.BuildReceiverResources(*it_loc, newItemsBuffer);
         if (!ret && ApplyMutation)
         {
             uint32_t tries = 0;
@@ -831,7 +830,7 @@ void RTPSParticipantImpl::createReceiverResources(LocatorList_t& Locator_list, b
             {
                 tries++;
                 *it_loc = applyLocatorAdaptRule(*it_loc);
-                ret = m_network_Factory.BuildReceiverResources(*it_loc, size, newItemsBuffer);
+                ret = m_network_Factory.BuildReceiverResources(*it_loc, newItemsBuffer);
             }
         }
 
@@ -841,7 +840,7 @@ void RTPSParticipantImpl::createReceiverResources(LocatorList_t& Locator_list, b
             //Push the new items into the ReceiverResource buffer
             m_receiverResourcelist.emplace_back(*it_buffer);
             //Create and init the MessageReceiver
-            auto mr = new MessageReceiver(this, size);
+            auto mr = new MessageReceiver(this, (*it_buffer)->max_message_size());
             m_receiverResourcelist.back().mp_receiver = mr;
             //Start reception
             m_receiverResourcelist.back().Receiver->RegisterReceiver(mr);
